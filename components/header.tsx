@@ -4,10 +4,29 @@ import Link from "next/link"
 import Image from "next/image"
 import { Search, ShoppingBag } from "lucide-react"
 import { useCart } from "./cart-provider"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
 
 export default function Header() {
   const { items } = useCart()
   const itemCount = items.reduce((total, item) => total + item.quantity, 0)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [search, setSearch] = useState(searchParams.get("q") || "")
+
+  const handleSearch = () => {
+    if (search.trim()) {
+      router.push(`/?q=${encodeURIComponent(search)}`)
+    } else {
+      router.push("/")
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch()
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
@@ -25,8 +44,22 @@ export default function Header() {
         </Link>
 
         <div className="hidden md:flex items-center relative w-full max-w-md mx-4">
-          <input type="search" placeholder="Search" className="w-full py-2 px-4 bg-gray-100 rounded-md pr-10" />
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
+          <input
+            type="search"
+            placeholder="Search"
+            className="w-full py-2 px-4 bg-gray-100 rounded-md pr-10"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5"
+            aria-label="Search"
+          >
+            <Search />
+          </button>
         </div>
 
         <Link href="/checkout" className="relative">

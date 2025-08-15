@@ -1,3 +1,5 @@
+"use client"
+
 import Header from "@/components/header"
 import CheckoutDetails from "@/components/checkout-details"
 import OrderSummary from "@/components/order-summary"

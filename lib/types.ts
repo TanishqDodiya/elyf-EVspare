@@ -15,6 +15,7 @@ export interface Product {
   category: string
   minimumQuantity: number
   inStock: boolean
+  gst?: string
 }
 
 export interface CartItem extends Product {

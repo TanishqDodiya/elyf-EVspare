@@ -1,7 +1,6 @@
 "use client"
 
 import Image from "next/image"
-import { Plus } from "lucide-react"
 import { useCart } from "./cart-provider"
 import type { Product } from "@/lib/types"
 
@@ -48,7 +47,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             onClick={handleAddToQuote}
             className="flex items-center gap-1 text-blue-600 border border-blue-600 rounded-md px-4 py-2 hover:bg-blue-50"
           >
-            <Plus size={16} />
+            <span className="text-lg leading-none">➕</span>
             Add to Quote
           </button>
         ) : (

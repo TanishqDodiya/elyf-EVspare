@@ -15,10 +15,12 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
   const [items, setItems] = useState<CartItem[]>([])
 
-  // Load cart from localStorage on component mount
+  // Handle client-side mounting
   useEffect(() => {
+    setMounted(true)
     const savedCart = localStorage.getItem("cart")
     if (savedCart) {
       try {
@@ -31,23 +33,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(items))
-  }, [items])
+    if (mounted) {
+      localStorage.setItem("cart", JSON.stringify(items))
+    }
+  }, [items, mounted])
 
   const addItem = (product: Product) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id)
-
       if (existingItem) {
-        return prevItems.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prevItems.map((item) => 
+          item.id === product.id 
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        )
       }
-
       return [...prevItems, { ...product, quantity: 1 }]
     })
   }
 
   const updateItemQuantity = (id: string, quantity: number) => {
-    setItems((prevItems) => prevItems.map((item) => (item.id === id ? { ...item, quantity } : item)))
+    setItems((prevItems) => 
+      prevItems.map((item) => 
+        item.id === id ? { ...item, quantity } : item
+      )
+    )
   }
 
   const removeItem = (id: string) => {
@@ -59,6 +69,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0)
+
+  // Return null during server-side rendering
+  if (!mounted) {
+    return null
+  }
 
   return (
     <CartContext.Provider
