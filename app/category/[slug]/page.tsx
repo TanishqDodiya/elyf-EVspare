@@ -2,7 +2,7 @@ import Header from "@/components/header"
 import Sidebar from "@/components/sidebar"
 import ProductList from "@/components/product-list"
 import Cart from "@/components/cart"
-import { categories, getProductsByCategory } from "@/lib/data"
+import { getCategories, getProductsByCategory } from "@/lib/data"
 
 export default async function CategoryPage({
   params,
@@ -10,6 +10,7 @@ export default async function CategoryPage({
   params: { slug: string }
 }) {
   const categorySlug = params.slug
+  const categories = await getCategories()
   const category = categories.find((c) => c.slug === categorySlug)
   const categoryProducts = await getProductsByCategory(categorySlug)
 
@@ -36,7 +37,13 @@ export default async function CategoryPage({
 }
 
 export async function generateStaticParams() {
-  return categories.map((category) => ({
-    slug: category.slug,
-  }))
+  try {
+    const categories = await getCategories()
+    return categories.map((category) => ({
+      slug: category.slug,
+    }))
+  } catch (error) {
+    console.error('Error generating static params:', error)
+    return []
+  }
 }

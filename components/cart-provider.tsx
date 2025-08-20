@@ -21,19 +21,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true)
-    const savedCart = localStorage.getItem("cart")
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart))
-      } catch (error) {
-        console.error("Failed to parse cart from localStorage:", error)
+    if (typeof window !== 'undefined') {
+      const savedCart = localStorage.getItem("cart")
+      if (savedCart) {
+        try {
+          const parsedCart = JSON.parse(savedCart)
+          if (Array.isArray(parsedCart)) {
+            setItems(parsedCart)
+          }
+        } catch (error) {
+          console.error("Failed to parse cart from localStorage:", error)
+          localStorage.removeItem("cart") // Clear corrupted data
+        }
       }
     }
   }, [])
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (mounted) {
+    if (mounted && typeof window !== 'undefined') {
       localStorage.setItem("cart", JSON.stringify(items))
     }
   }, [items, mounted])
@@ -68,17 +74,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([])
   }
 
-  const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0)
-
-  // Return null during server-side rendering
-  if (!mounted) {
-    return null
-  }
+  const totalPrice = mounted ? items.reduce((total, item) => total + item.price * item.quantity, 0) : 0
 
   return (
     <CartContext.Provider
       value={{
-        items,
+        items: mounted ? items : [],
         addItem,
         updateItemQuantity,
         removeItem,

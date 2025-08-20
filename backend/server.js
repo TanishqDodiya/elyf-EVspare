@@ -1,5 +1,5 @@
 const express = require('express');
-// const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
@@ -77,47 +77,50 @@ app.use((err, req, res, next) => {
   });
 });
 
-// --- MongoDB Connection (Commented out for now) ---
-// require('dotenv').config();
-// console.log('MongoDB URI from env:', `'${process.env.MONGODB_URI}'`);
+// --- MongoDB Connection ---
 
-// const mongooseOptions = {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-//   // poolSize: 10, // Uncomment to control connection pool size
-//   serverSelectionTimeoutMS: 5000, // Fail fast if cannot connect
-// };
+console.log('MongoDB URI from env:', process.env.MONGODB_URI);
 
-// mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
-//   .then(() => {
-//     console.log('Connected to MongoDB');
-//     app.listen(PORT, () => {
-//       console.log(`Server running on port ${PORT}`);
-//       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-//     });
-//   })
-//   .catch((error) => {
-//     console.error('MongoDB connection error:', error);
-//     process.exit(1);
-//   });
+const mongooseOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000, // Fail fast if cannot connect
+};
 
-// Start server without MongoDB for now
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('Note: Running without MongoDB connection');
-});
+// Try to connect to MongoDB, but don't fail if it's not available
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/ev-spare-parts', mongooseOptions)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    startServer();
+  })
+  .catch((error) => {
+    console.warn('MongoDB connection failed, running with static data:', error.message);
+    startServer();
+  });
+
+function startServer() {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+  });
+}
 
 // Graceful shutdown for MongoDB
-// process.on('SIGINT', async () => {
-//   await mongoose.connection.close();
-//   console.log('MongoDB connection closed due to app termination (SIGINT)');
-//   process.exit(0);
-// });
-// process.on('SIGTERM', async () => {
-//   await mongoose.connection.close();
-//   console.log('MongoDB connection closed due to app termination (SIGTERM)');
-//   process.exit(0);
-// });
+process.on('SIGINT', async () => {
+  if (mongoose.connection.readyState === 1) {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed due to app termination (SIGINT)');
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  if (mongoose.connection.readyState === 1) {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed due to app termination (SIGTERM)');
+  }
+  process.exit(0);
+});
 
 module.exports = app; 

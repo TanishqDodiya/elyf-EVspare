@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { ChevronUp, ChevronDown } from "lucide-react"
-import { useState } from "react"
-import { categories } from "@/lib/data"
+import { useState, useEffect } from "react"
+import { getCategories } from "@/lib/data"
+import type { Category } from "@/lib/types"
 
 const referenceCategories = [
   {
@@ -63,6 +64,23 @@ const referenceCategories = [
 
 export default function Sidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const fetchedCategories = await getCategories()
+        setCategories(fetchedCategories)
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCategories()
+  }, [])
 
   // Helper to get the slug for a category name from the categories array
   function getCategorySlug(name: string) {
@@ -70,6 +88,23 @@ export default function Sidebar() {
     if (match) return match.slug
     // fallback: old logic
     return encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'))
+  }
+
+  if (loading) {
+    return (
+      <aside className="w-full md:w-64 bg-white">
+        <div className="p-4">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded mb-4"></div>
+            <div className="space-y-2">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className="h-3 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    )
   }
 
   return (
@@ -104,6 +139,25 @@ export default function Sidebar() {
               </li>
             ))}
           </ul>
+          
+          {/* Dynamic categories section */}
+          {categories.length > 0 && (
+            <div className="mt-6 pt-4 border-t">
+              <div className="font-semibold text-gray-700 mb-2">All Categories</div>
+              <ul className="space-y-1">
+                {categories.map((category) => (
+                  <li key={category.id}>
+                    <Link
+                      href={`/category/${category.slug}`}
+                      className="block py-1 px-2 rounded-md hover:bg-gray-100 text-sm"
+                    >
+                      {category.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </nav>
       </aside>
     </>
