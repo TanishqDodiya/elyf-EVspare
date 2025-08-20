@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Spare Parts - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 EV Spare Parts Application</h1>
+            <h2>System Test Page</h2>
+        </div>
+
+        <div class="info">
+            <strong>Instructions:</strong><br>
+            1. Make sure both servers are running<br>
+            2. Click the test buttons below to verify functionality<br>
+            3. Check the main application at <a href="http://localhost:3000" target="_blank">http://localhost:3000</a>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="btn" onclick="testBackend()">Test Backend API</button>
+            <button class="btn" onclick="testCategories()">Test Categories</button>
+            <button class="btn" onclick="testProducts()">Test Products</button>
+            <button class="btn" onclick="openMainApp()">Open Main App</button>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        async function testBackend() {
+            log('Testing backend connection...', 'info');
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                const data = await response.json();
+                log(`✅ Backend is running: ${data.message}`, 'success');
+            } catch (error) {
+                log(`❌ Backend connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCategories() {
+            log('Testing categories endpoint...', 'info');
+            try {
+                const response = await fetch('http://localhost:5000/api/categories');
+                const data = await response.json();
+                log(`✅ Categories loaded: ${data.length} categories found`, 'success');
+                log(`First category: ${data[0]?.name}`, 'info');
+            } catch (error) {
+                log(`❌ Categories test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProducts() {
+            log('Testing products endpoint...', 'info');
+            try {
+                const response = await fetch('http://localhost:5000/api/products');
+                const data = await response.json();
+                log(`✅ Products loaded: ${data.length} products found`, 'success');
+                if (data.length > 0) {
+                    log(`First product: ${data[0]?.name} - ₹${data[0]?.price}`, 'info');
+                }
+            } catch (error) {
+                log(`❌ Products test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function openMainApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            log('🚀 EV Spare Parts Test Page Loaded', 'info');
+            log('Click the buttons above to test different components', 'info');
+        };
+    </script>
+</body>
+</html>

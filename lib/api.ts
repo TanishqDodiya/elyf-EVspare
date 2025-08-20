@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 5000, // 5 second timeout (reduced for faster fallback)
 });
 
 // Add a flag to check if we're on the server side
@@ -32,6 +32,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log connection errors for debugging
+    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
+      console.warn('Backend server is not running. Using fallback data.');
+    }
+    
     if (!isServer && error.response?.status === 401) {
       try {
         localStorage.removeItem('authToken');

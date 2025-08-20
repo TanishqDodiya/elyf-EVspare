@@ -21,7 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Quality EV spare parts for your electric vehicles" />
+        <title>Maa Ashapura Enterprise - EV Spare Parts</title>
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <div style={{ textAlign: "center", padding: "1rem" }}>
           <Image
